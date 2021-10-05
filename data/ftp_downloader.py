@@ -1,16 +1,36 @@
-import ftplib
+import argparse
 import ftputil
 import logging
 import os
 import pathlib
+from types import SimpleNamespace
+
+import yaml
 
 log = logging.getLogger(__name__)
-logging.basicConfig(filename="download.log", level=logging.INFO)
 
-# TODO call this from yaml input
+# TODO goe
+# logging.basicConfig(filename="download.log", level=logging.INFO)
 
 
 class FTPDataDownloader:
+    """Class which downloads files over an FTP connection.
+
+    Parameters
+    ----------
+    host: str
+        Address of the remote server containing the data to be downloaded.
+    source_dir: str
+        Server-side path to the base directory containing the data to be downloaded.
+    target_dir: str (optional)
+        Client-side path to directory where data will be downloaded. Default: '.'
+    exclude_dirs: list[str] (optional)
+        List of directories to exclude from the download. Default: []
+    preserve_structure: bool (optional)
+        Flag indicating whether or not to preserve directory structure during download.
+        If False, all files will be downloaded to `target_dir`. Default: False
+    """
+
     def __init__(
         self,
         host: str,
@@ -62,6 +82,8 @@ class FTPDataDownloader:
             # ftp_host.chdir(self.source_dir)
             # TODO Maybe catch exceptions here, log and continue
             ftp_host.download(source, target)
+
+        return target
 
     @property
     def host(self) -> str:
@@ -117,7 +139,7 @@ class FTPDataDownloader:
 
     def check_credentials(self):
         """Attempts to construct an FTP connection using the provided credentials."""
-        print(f"Attempting to connect to host {host}.")
+        print(f"Attempting to connect to host: {self.host}.", end=".. ")
         with ftputil.FTPHost(self.host, self.get_user(), self.get_password()) as _:
             pass
         print("No exceptions raised!")
@@ -127,58 +149,60 @@ class FTPDataDownloader:
         file_list = []
         total_size = 0
 
-        log.info("Performing dry run...")
+        print("Performing dry run...")
         with ftputil.FTPHost(
             self.host, self.get_user(), self.get_password()
         ) as ftp_host:
 
-            log.info(f"Moving to directory: {self.source_dir}")
+            print(f"Moving to directory: {self.source_dir}")
             ftp_host.chdir(self.source_dir)
 
             for root, _, files in ftp_host.walk(ftp_host.curdir):
                 root = pathlib.Path(root)
 
                 if str(root.relative_to(".")) in self.exclude_dirs:
-                    log.info(f"Skipping directory: {root}")
+                    print(f"Skipping directory: {root}")
                     continue
 
                 if len(files) == 0:
-                    log.info(f"No files found in directory: {root}")
+                    print(f"No files found in directory: {root}")
                     continue
 
                 size = sum([ftp_host.path.getsize(root / file) for file in files])
-                log.info(
+                print(
                     f"Found {len(files)} files ({int(size/1e6)} MB) in directory: {root}"
                 )
 
                 file_list += [f"{root}/{file}" for file in files]
                 total_size += size
 
-        log.info(
+        print(
             f"Total: {len(file_list)} files to be downloaded ({int(total_size/1e6)} MB)"
         )
         self._file_list = file_list
         self._iter_files = iter(file_list)  # points to same object!
 
 
+_parser = argparse.ArgumentParser()
+_parser.add_argument(
+    "-c",
+    "--config",
+    type=str,
+    required=True,
+    help="path to yaml configuration file",
+)
+
 if __name__ == "__main__":
 
-    host = "my.cmems-du.eu"
-    source_dir = (
-        "Core/INSITU_GLO_TS_REP_OBSERVATIONS_013_001_b/CORIOLIS-GLOBAL-EasyCORA-OBS/"
-    )
-    exclude_dirs = [
-        "arctic",
-        "baltic",
-        "blacksea",
-        "mediterrane",
-        "northwestshelf",
-        "southwestshelf",
-    ]
+    args = _parser.parse_args()
 
-    downloader = FTPDataDownloader(host, source_dir, exclude_dirs=exclude_dirs)
+    with open(args.config, "r") as file:
+        config = SimpleNamespace(**yaml.safe_load(file))
+
+    downloader = FTPDataDownloader(
+        config.host, config.source, exclude_dirs=config.exclude
+    )
 
     downloader.check_credentials()
-    next(downloader)
     downloader.dry_run()
-
+    _ = next(downloader)

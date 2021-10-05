@@ -1,0 +1,9 @@
+host: my.cmems-du.eu
+source: Core/INSITU_GLO_TS_REP_OBSERVATIONS_013_001_b/CORIOLIS-GLOBAL-EasyCORA-OBS/
+exclude:
+  - arctic
+  - baltic
+  - blacksea
+  - mediterrane # [sic]
+  - northwestshelf
+  - southwestshelf
