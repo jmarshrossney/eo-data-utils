@@ -1,4 +1,4 @@
-# Accessing data Copernicus
+# Accessing Copernicus data
 
 The data we would like to download is the [CORA 5.2 dataset for global in situ temperature and salinity measurements](https://resources.marine.copernicus.eu/product-detail/INSITU_GLO_TS_REP_OBSERVATIONS_013_001_b/INFORMATION) (also see [this article](https://os.copernicus.org/articles/15/1601/2019/)).
 Copernicus give us [several options](https://help.marine.copernicus.eu/en/articles/4682988-what-are-the-data-access-endpoints-for-copernicus-marine-products-and-datasets).
