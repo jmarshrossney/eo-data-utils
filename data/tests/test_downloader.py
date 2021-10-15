@@ -54,14 +54,19 @@ def test_existing_file(primed_downloader):
         file.write("dog")
     _ = next(primed_downloader)
 
-@pytest.mark.xfail(raises=StopIteration)
-def test_download(primed_downloader):
+def test_file_downloads(primed_downloader):
     # Download readme.txt
     file = next(primed_downloader)
     assert pathlib.Path(file).is_file()
 
-    # try to download again, expect StopIteration
-    _ = next(primed_downloader)
+@pytest.mark.xfail(raises=StopIteration)
+def test_no_more_files(primed_downloader):
+    # Modify protected attr so we don't have to go through the download again :)
+    try:
+        _ = next(primed_downloader._iter_files)
+    except StopIteration:
+        assert False, "Something has gone really wrong. Should not fail here!"
+    _ = next(primed_downloader)  # should fail here!
 
 
 

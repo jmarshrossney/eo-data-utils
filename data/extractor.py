@@ -1,5 +1,6 @@
 import pathlib
 import shutil
+from typing import Union
 
 
 class ArchiveModifiedError(Exception):
@@ -7,10 +8,38 @@ class ArchiveModifiedError(Exception):
 
 
 class OpenArchive:
+    """Context manager for working with compressed archives.
+
+    Upon entry, the archive is extracted into a temporary directory, and an
+    iterator of pathlib.Path objects pointing to the extracted files is returned.
+    Upon exit, the temporary directory is deleted.
+
+    Parameters
+    ----------
+    archive: Union[str, pathlib.Path]
+        Path to archive.
+    tmpdir: Union[str, pathlib.Path] (optional)
+        Path to temporary directory into which archive is to be extracted.
+        Must not already exist!
+
+    Raises
+    ------
+    FileExistsError
+        Upon entry, if `tmpdir` already exists.
+    ArchiveModifiedError
+        If the contents of `tmpdir` have been modified while inside the context
+        manager. This is a fail-safe in case something useful has been saved into
+        the temporary directory.
+    """
+
     tol = 1
 
-    def __init__(self, archive: pathlib.Path, tmpdir: str = "_tmp"):
-        self._archive = archive
+    def __init__(
+        self,
+        archive: Union[str, pathlib.Path],
+        tmpdir: Union[str, pathlib.Path] = "_tmp",
+    ):
+        self._archive = pathlib.Path(archive)
         self._tmpdir = pathlib.Path(tmpdir)
 
     def __enter__(self):
