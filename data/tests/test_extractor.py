@@ -9,7 +9,7 @@ sys.path.append(str(pathlib.Path(__file__).parents[1]))
 
 from extractor import OpenArchive, ArchiveModifiedError
 
-TARFILE = pathlib.Path(__file__).parent / "random.tar.gz"
+_TARFILE = pathlib.Path(__file__).parent / "random.tar.gz"
 _TMPDIR = pathlib.Path(__file__).parent / "_tmp"
 
 
@@ -20,18 +20,19 @@ def tmpdir():
     yield _TMPDIR
     shutil.rmtree(_TMPDIR)
 
-
     """Catch cases where archive is modified while inside context manager."""
+
 
 @pytest.mark.xfail(raises=ArchiveModifiedError)
 def test_num_files_changes(tmpdir):
-    with OpenArchive(TARFILE, tmpdir) as files:
+    with OpenArchive(_TARFILE, tmpdir) as files:
         f = next(files)
         f.unlink()  # deletes f
 
+
 @pytest.mark.xfail(raises=ArchiveModifiedError)
 def test_size_changes(tmpdir):
-    with OpenArchive(TARFILE, _TMPDIR) as files:
+    with OpenArchive(_TARFILE, _TMPDIR) as files:
         f = next(files)
         f.unlink()  # deletes f
         g = next(files)

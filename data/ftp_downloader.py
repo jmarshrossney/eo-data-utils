@@ -54,8 +54,7 @@ class FTPDataDownloader:
         try:
             rel_path_to_source = next(self._iter_files)
         except AttributeError:
-            print("A dry run is required before downloading can begin.")
-            return
+            raise AttributeError("A dry run is required before downloading can begin.")
         except StopIteration:
             raise StopIteration("No more files to download.")
 
@@ -137,8 +136,18 @@ class FTPDataDownloader:
         """
         return os.getenv("FTP_PASS")
 
+    def _is_nonempty_string(self, s) -> bool:
+        """Return True if input is a non-empty string of length > 1."""
+        return type(s) is str and len(s) > 0
+
     def check_credentials(self):
         """Attempts to construct an FTP connection using the provided credentials."""
+        if not self._is_nonempty_string(
+            self.get_user()
+        ) or not self._is_nonempty_string(self.get_password()):
+            log.warning(
+                "Failed to acquire valid (non-empty string) user and/or password."
+            )
         print(f"Attempting to connect to host: {self.host}.", end=".. ")
         with ftputil.FTPHost(self.host, self.get_user(), self.get_password()) as _:
             pass
@@ -160,7 +169,10 @@ class FTPDataDownloader:
             for root, _, files in ftp_host.walk(ftp_host.curdir):
                 root = pathlib.Path(root)
 
-                if str(root.relative_to(".")) in self.exclude_dirs:
+                # NOTE: if exclude_dirs includes 'dog/', then 'cat/dog/' is also excluded!
+                if any(
+                    [str(p) in self.exclude_dirs for p in root.relative_to(".").parents]
+                ):
                     print(f"Skipping directory: {root}")
                     continue
 
