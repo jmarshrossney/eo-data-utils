@@ -3,7 +3,7 @@ source: Core/INSITU_GLO_TS_REP_OBSERVATIONS_013_001_b/CORIOLIS-GLOBAL-EasyCORA-O
 exclude:
   - arctic
   - baltic
-  - blacksea
+  - global
   - mediterrane # [sic]
   - northwestshelf
   - southwestshelf

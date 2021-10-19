@@ -1,9 +1,9 @@
-import argparse
 import ftputil
 import logging
 import os
 import pathlib
 from types import SimpleNamespace
+from typing import Callable
 
 import yaml
 
@@ -46,6 +46,7 @@ class FTPDataDownloader:
         self._target_dir = pathlib.Path(target_dir)
         self._exclude_dirs = exclude_dirs  # [pathlib.Path(d) for d in exclude_dirs]
         self._preserve_structure = preserve_structure
+        self._filters = []
 
     def __iter__(self):
         return self
@@ -114,6 +115,11 @@ class FTPDataDownloader:
         """List containing all files to be downloaded."""
         return self._file_list
 
+    @property
+    def filters(self) -> list[Callable]:
+        """Functions for excluding files."""
+        return self._filters
+
     @staticmethod
     def get_user() -> str:
         """Returns the client's username.
@@ -153,6 +159,10 @@ class FTPDataDownloader:
             pass
         print("No exceptions raised!")
 
+    def register_filter(self, filter_func):
+        # TODO run some checks
+        self._filters.append(filter_func)
+
     def dry_run(self):
         """Do a dry-run of the download."""
         file_list = []
@@ -169,9 +179,9 @@ class FTPDataDownloader:
             for root, _, files in ftp_host.walk(ftp_host.curdir):
                 root = pathlib.Path(root)
 
-                # NOTE: if exclude_dirs includes 'dog/', then 'cat/dog/' is also excluded!
-                if any(
-                    [str(p) in self.exclude_dirs for p in root.relative_to(".").parents]
+                relative_root = root.relative_to(".")
+                if str(relative_root) in self.exclude_dirs or any(
+                    [str(p) in self.exclude_dirs for p in relative_root.parents]
                 ):
                     print(f"Skipping directory: {root}")
                     continue
@@ -180,12 +190,17 @@ class FTPDataDownloader:
                     print(f"No files found in directory: {root}")
                     continue
 
-                size = sum([ftp_host.path.getsize(root / file) for file in files])
+                # Apply custom filters to files
+                local_file_list = [root / file for file in files]
+                for filter_ in self.filters:
+                    local_file_list = filter_(local_file_list)
+
+                size = sum([ftp_host.path.getsize(file) for file in local_file_list])
                 print(
-                    f"Found {len(files)} files ({int(size/1e6)} MB) in directory: {root}"
+                    f"Added {len(local_file_list)} files ({int(size/1e6)} MB) from directory: {root}"
                 )
 
-                file_list += [f"{root}/{file}" for file in files]
+                file_list += [str(file) for file in local_file_list]
                 total_size += size
 
         print(
@@ -193,28 +208,3 @@ class FTPDataDownloader:
         )
         self._file_list = file_list
         self._iter_files = iter(file_list)  # points to same object!
-
-
-_parser = argparse.ArgumentParser()
-_parser.add_argument(
-    "-c",
-    "--config",
-    type=str,
-    required=True,
-    help="path to yaml configuration file",
-)
-
-if __name__ == "__main__":
-
-    args = _parser.parse_args()
-
-    with open(args.config, "r") as file:
-        config = SimpleNamespace(**yaml.safe_load(file))
-
-    downloader = FTPDataDownloader(
-        config.host, config.source, exclude_dirs=config.exclude
-    )
-
-    downloader.check_credentials()
-    downloader.dry_run()
-    _ = next(downloader)

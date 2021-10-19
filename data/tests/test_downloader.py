@@ -15,6 +15,7 @@ _TARGET_DIR = pathlib.Path(__file__).parent / "_tmp_test_downloader"
 
 assert not _TARGET_DIR.exists()
 
+
 @pytest.fixture()
 def downloader():
     with open(_CONFIG, "r") as file:
@@ -32,12 +33,13 @@ def downloader():
         # TODO maybe a module or session-level teardown?
         shutil.rmtree(_TARGET_DIR)
 
+
 @pytest.fixture()
 def primed_downloader(downloader):
     downloader.check_credentials()
     downloader.dry_run()
     assert downloader.file_list == [
-        "./readme.txt"
+        "readme.txt"
     ], f"Test server {downloader.host} have made changes. Exiting since there is no way of knowing what will be downloaded."
     return downloader
 
@@ -45,6 +47,7 @@ def primed_downloader(downloader):
 @pytest.mark.xfail(raises=AttributeError)
 def test_dry_run_requirement(downloader):
     _ = next(downloader)
+
 
 @pytest.mark.xfail(raises=FileExistsError)
 def test_existing_file(primed_downloader):
@@ -54,10 +57,12 @@ def test_existing_file(primed_downloader):
         file.write("dog")
     _ = next(primed_downloader)
 
+
 def test_file_downloads(primed_downloader):
     # Download readme.txt
     file = next(primed_downloader)
     assert pathlib.Path(file).is_file()
+
 
 @pytest.mark.xfail(raises=StopIteration)
 def test_no_more_files(primed_downloader):
@@ -67,6 +72,3 @@ def test_no_more_files(primed_downloader):
     except StopIteration:
         assert False, "Something has gone really wrong. Should not fail here!"
     _ = next(primed_downloader)  # should fail here!
-
-
-
