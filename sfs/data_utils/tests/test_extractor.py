@@ -4,10 +4,7 @@ import sys
 
 import pytest
 
-# NOTE: worth making this a package to improve imports? Or overkill..
-sys.path.append(str(pathlib.Path(__file__).parents[1]))
-
-from extractor import OpenArchive, ArchiveModifiedError
+from sfs.data_utils.extractor import OpenArchive, ArchiveModifiedError
 
 _TARFILE = pathlib.Path(__file__).parent / "random.tar.gz"
 _TMPDIR = pathlib.Path(__file__).parent / "_tmp"

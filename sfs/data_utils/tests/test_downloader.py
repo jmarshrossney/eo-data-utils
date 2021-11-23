@@ -1,14 +1,11 @@
 import pathlib
 import shutil
-import sys
 from types import SimpleNamespace
 
 import pytest
 import yaml
 
-sys.path.append(str(pathlib.Path(__file__).parents[1]))
-
-from ftp_downloader import FTPDataDownloader
+from sfs.data_utils.ftp_downloader import FTPDataDownloader
 
 _CONFIG = pathlib.Path(__file__).parent / "rebex.yml"
 _TARGET_DIR = pathlib.Path(__file__).parent / "_tmp_test_downloader"
