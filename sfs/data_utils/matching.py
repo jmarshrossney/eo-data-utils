@@ -15,16 +15,16 @@ from ftp_downloader import FTPDataDownloader
 def date_parser(file):
     """Extract date from these cmems archive."""
     parts = file.name.split("_")
-    print(parts[2])
     date = parts[2]
     date = date[:4] + "-" + date[4:6] + "-" + date[6:]
     return ee.Date(date)
+
 
 def filter_date(files):
     filtered = [file for file in files if int(file.stem[-4:]) > 2018]
     print(f"Removed {len(files) - len(filtered)} files with date not > 2018")
     return filtered
-    
+
 
 ee.Initialize()
 
@@ -39,7 +39,7 @@ geometry = ee.Geometry.Polygon(
     ]
 )
 images = ee.ImageCollection("COPERNICUS/S3/OLCI").filterBounds(geometry)
-#print(images.first().bandNames().getInfo())
+print("Bands: ", images.first().bandNames().getInfo())
 
 with open("examples/cmems_example.yml", "r") as file:
     config = SimpleNamespace(**yaml.safe_load(file))
@@ -59,7 +59,6 @@ downloader.dry_run()
 keepvars = ["PSAL", "TEMP", "DEPTH", "LATITUDE", "LONGITUDE", "JULD"]
 
 for archive in downloader:
-    print(archive)
     with OpenArchive(archive) as files:
         for file in files:
 
@@ -70,7 +69,7 @@ for archive in downloader:
                 print("No images on this date")
                 continue
 
-            print("num images: ", filtered_images.size().getInfo())
+            print("num images on this date: ", filtered_images.size().getInfo())
 
             ds = xr.open_dataset(file)
 
@@ -95,5 +94,19 @@ for archive in downloader:
 
             df = ds.to_pandas()
 
-            print(df.head())
+            for idx, row in df.iterrows():
+                point = ee.Geometry.Point(row["LONGITUDE"], row["LATITUDE"])
+                juld = str(row["JULD"]).replace(" ", "T")
+                juld = ee.Date(juld)
+                daterange = ee.DateRange(
+                    juld.advance(-5, "hour"), juld.advance(5, "hour")
+                )
+                tmp = filtered_images.filterBounds(point).filterDate(daterange)
+
+                print(
+                    "num images at this point, +/- 5 hours:",
+                    tmp.size().getInfo(),
+                )
+
+            # print(df.head())
             print("")
