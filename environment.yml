@@ -15,14 +15,16 @@ dependencies:
   - bottleneck=1.3.2=py39hdd57654_1
   - brotlipy=0.7.0=py39h3811e60_1001
   - c-ares=1.17.1=h27cfd23_0
-  - ca-certificates=2021.10.8=ha878542_0
+  - ca-certificates=2020.10.14=0
   - cachetools=4.2.4=pyhd8ed1ab_0
   - certifi=2021.10.8=py39hf3d152e_1
   - cffi=1.14.6=py39h400218f_0
+  - cftime=1.5.0=py39h6323ea4_0
   - chardet=4.0.0=py39hf3d152e_2
   - charset-normalizer=2.0.0=pyhd8ed1ab_0
   - click=8.0.3=py39hf3d152e_1
   - cryptography=3.4.8=py39hbca0aa6_0
+  - curl=7.71.1=hbc83047_1
   - dataclasses=0.8=pyhc8e2a94_3
   - decorator=4.4.2=py_0
   - docutils=0.18=py39hf3d152e_1
@@ -41,6 +43,8 @@ dependencies:
   - google-resumable-media=2.1.0=pyh6c4a22f_0
   - googleapis-common-protos=1.53.0=py39hf3d152e_1
   - grpcio=1.42.0=py39hce63b2e_0
+  - hdf4=4.2.13=h3ca952b_2
+  - hdf5=1.10.6=hb1b8bf9_0
   - httplib2=0.20.2=pyhd8ed1ab_1
   - idna=3.1=pyhd3deb0d_0
   - importlib-metadata=2.0.0=py_1
@@ -49,12 +53,20 @@ dependencies:
   - intel-openmp=2021.4.0=h06a4308_3561
   - ipython=7.29.0=py39hb070fc8_0
   - jedi=0.18.0=py39h06a4308_1
+  - jpeg=9b=habf39ab_1
+  - krb5=1.18.2=h173b8e3_0
   - ld_impl_linux-64=2.35.1=h7274673_9
   - libcrc32c=1.1.1=he6710b0_2
+  - libcurl=7.71.1=h20c2e04_1
+  - libedit=3.1.20191231=h14c3975_1
   - libffi=3.3=he6710b0_2
   - libgcc-ng=9.3.0=h5101ec6_17
+  - libgfortran-ng=7.5.0=ha8ba4b0_17
+  - libgfortran4=7.5.0=ha8ba4b0_17
   - libgomp=9.3.0=h5101ec6_17
+  - libnetcdf=4.6.1=h2053bdc_4
   - libprotobuf=3.15.8=h780b84a_0
+  - libssh2=1.9.0=h1ba5d50_1
   - libstdcxx-ng=9.3.0=hd4cf53a_17
   - matplotlib-inline=0.1.2=pyhd3eb1b0_2
   - mkl=2021.4.0=h06a4308_640
@@ -65,6 +77,7 @@ dependencies:
   - multidict=5.1.0=py39h27cfd23_2
   - mypy_extensions=0.4.3=py39hf3d152e_4
   - ncurses=6.3=h7f8727e_2
+  - netcdf4=1.5.7=py39he70f4c8_0
   - numexpr=2.7.3=py39h22e1b3c_1
   - numpy=1.21.2=py39h20f2e39_0
   - numpy-base=1.21.2=py39h79a1101_0
@@ -100,6 +113,7 @@ dependencies:
   - regex=2021.8.3=py39h7f8727e_0
   - requests=2.26.0=pyhd8ed1ab_0
   - rsa=4.7.2=pyh44b312d_0
+  - scipy=1.7.1=py39h292c36d_2
   - setuptools=58.0.4=py39h06a4308_0
   - simplejson=3.17.3=py39h7f8727e_2
   - six=1.15.0=py_0
@@ -117,7 +131,7 @@ dependencies:
   - urllib3=1.26.7=pyhd8ed1ab_0
   - wcwidth=0.2.5=py_0
   - wheel=0.37.0=pyhd3eb1b0_1
-  - xarray=0.16.1=py_0
+  - xarray=0.19.0=pyhd3eb1b0_1
   - xz=5.2.5=h7b6447c_0
   - yaml=0.2.5=h516909a_0
   - yarl=1.6.3=py39h3811e60_2
