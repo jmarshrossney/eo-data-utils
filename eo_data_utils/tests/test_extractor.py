@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from sfs.data_utils.extractor import OpenArchive, ArchiveModifiedError
+from eo_data_utils.extractor import OpenArchive, ArchiveModifiedError
 
 _TARFILE = pathlib.Path(__file__).parent / "random.tar.gz"
 _TMPDIR = pathlib.Path(__file__).parent / "_tmp"

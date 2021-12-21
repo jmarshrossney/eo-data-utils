@@ -139,5 +139,4 @@ dependencies:
   - zlib=1.2.11=h7b6447c_3
   - pip:
     - nb-black==1.0.7
-    - eo-data-utils==0.1
 prefix: /home/joe/.miniconda3/envs/eodu

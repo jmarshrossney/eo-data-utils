@@ -5,7 +5,7 @@ from types import SimpleNamespace
 import pytest
 import yaml
 
-from sfs.data_utils.ftp_downloader import FTPDataDownloader
+from eo_data_utils.ftp_downloader import FTPDataDownloader
 
 _CONFIG = pathlib.Path(__file__).parent / "rebex.yml"
 _TARGET_DIR = pathlib.Path(__file__).parent / "_tmp_test_downloader"

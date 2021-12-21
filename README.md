@@ -4,16 +4,30 @@ A collection of useful utilities for downloading and combining Earth Observation
 
 ## Installation
 
-Create a conda environment using the `environment.yml` file provided, which uses Python 3.9.
+Clone the repository:
 
 ```
-conda env create --name eodu --file environment.yml
+git clone https://github.com/marshrossney/eo-data-utils
+cd eo-data-utils
 ```
 
-Run the tests
+Create a conda environment using the `environment.yml` file provided, which uses Python 3.9:
 
 ```
-pytest --pyargs eodu
+conda env create --file environment.yml
+```
+
+Activate the environment and install the package:
+
+```
+conda activate eodu
+flit install --symlink
+```
+
+Run the tests:
+
+```
+pytest --pyargs eo_data_utils
 ```
 
 ## Download in-situ data from Copernicus
