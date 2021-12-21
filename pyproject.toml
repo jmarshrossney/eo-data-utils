@@ -3,7 +3,7 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "sfs"
+name = "eo-data-utils"
 authors = [{name = "Joe Marsh Rossney"}]
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -14,7 +14,7 @@ dynamic = ["version", "description"]
 test = ["pytest"]
 
 [project.urls]
-Source = "https://github.com/marshrossney/salinity-from-space"
+Source = "https://github.com/marshrossney/eo-data-utils"
 
 [tool.flit.module]
-name = "sfs"
+name = "eo_data_utils"

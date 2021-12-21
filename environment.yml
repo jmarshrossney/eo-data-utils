@@ -1,4 +1,4 @@
-name: sfs
+name: eodu
 channels:
   - anaconda
   - conda-forge
@@ -139,5 +139,5 @@ dependencies:
   - zlib=1.2.11=h7b6447c_3
   - pip:
     - nb-black==1.0.7
-    - sfs==0.1
-prefix: /home/joe/.miniconda3/envs/sfs
+    - eo-data-utils==0.1
+prefix: /home/joe/.miniconda3/envs/eodu

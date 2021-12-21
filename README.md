@@ -1,23 +1,26 @@
-# Salinity from space
+# Earth Observation Data Utils
+
+A collection of useful utilities for downloading and combining Earth Observation datasets from the likes of Copernicus (CMEMS) and Google Earth Engine.
 
 ## Installation
 
 Create a conda environment using the `environment.yml` file provided, which uses Python 3.9.
 
 ```
-conda env create --name sfs --file environment.yml
+conda env create --name eodu --file environment.yml
 ```
 
 Run the tests
 
 ```
-pytest --pyargs sfs
+pytest --pyargs eodu
 ```
 
-## Download in-situ data and match with Google Earth Engine dataset
+## Download in-situ data from Copernicus
 
 To do
 
-## Experiment with Machine Learning techniques for predictiong salinity from satellite imagery
+## Extract and match downloaded data with Google Earth Engine dataset
 
 To do
+
