@@ -1,16 +1,17 @@
-import ftputil
+from __future__ import annotations
+
 import logging
 import os
 import pathlib
-from types import SimpleNamespace
 from typing import Callable
 
-import yaml
+import ftputil
+import jsonargparse
 
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-# TODO goe
-# logging.basicConfig(filename="download.log", level=logging.INFO)
+Path: TypeAlias = pathlib.Path
 
 
 class FTPDataDownloader:
@@ -20,32 +21,27 @@ class FTPDataDownloader:
     ----------
     host: str
         Address of the remote server containing the data to be downloaded.
-    source_dir: str
+    source: str
         Server-side path to the base directory containing the data to be downloaded.
-    target_dir: str (optional)
+    target: str (optional)
         Client-side path to directory where data will be downloaded. Default: '.'
-    exclude_dirs: list[str] (optional)
+    exclude: list[str] (optional)
         List of directories to exclude from the download. Default: []
-    preserve_structure: bool (optional)
-        Flag indicating whether or not to preserve directory structure during download.
-        If False, all files will be downloaded to `target_dir`. Default: False
     """
 
     def __init__(
         self,
         host: str,
-        source_dir: str,
+        source: str | Path,
         *,
-        target_dir: str = ".",
-        exclude_dirs: list[str] = [],
-        preserve_structure: bool = False,
+        target: str | Path = ".",
+        exclude: list[str] = [],
     ):
 
         self._host = host
-        self._source_dir = pathlib.Path(source_dir)
-        self._target_dir = pathlib.Path(target_dir)
-        self._exclude_dirs = exclude_dirs  # [pathlib.Path(d) for d in exclude_dirs]
-        self._preserve_structure = preserve_structure
+        self._source = pathlib.Path(source)
+        self._target = pathlib.Path(target)
+        self._exclude = exclude  # [pathlib.Path(d) for d in exclude]
         self._filters = []
 
     def __iter__(self):
@@ -59,12 +55,8 @@ class FTPDataDownloader:
         except StopIteration:
             raise StopIteration("No more files to download.")
 
-        source = self.source_dir / rel_path_to_source
-
-        if self.preserve_structure:
-            target = self.target_dir / rel_path_to_source
-        else:
-            target = self.target_dir / source.name
+        source = self.source / rel_path_to_source
+        target = self.target / rel_path_to_source
 
         if target.exists():
             raise FileExistsError(f"{target} already exists.")
@@ -75,11 +67,9 @@ class FTPDataDownloader:
 
         log.info(f"Attempting download: {rel_path_to_source} -> {target}")
         with ftputil.FTPHost(
-            self.host,
-            self.get_user(),
-            self.get_password(),
+            self.host, self.get_user(), self.get_password(),
         ) as ftp_host:
-            # ftp_host.chdir(self.source_dir)
+            # ftp_host.chdir(self.source)
             # TODO Maybe catch exceptions here, log and continue
             ftp_host.download(source, target)
 
@@ -91,24 +81,19 @@ class FTPDataDownloader:
         return self._host
 
     @property
-    def source_dir(self) -> pathlib.Path:
+    def source(self) -> pathlib.Path:
         """The server-side directory containing data to be downloaded."""
-        return self._source_dir
+        return self._source
 
     @property
-    def target_dir(self) -> pathlib.Path:
+    def target(self) -> pathlib.Path:
         """The client-side directory containing the downloaded data."""
-        return self._target_dir
+        return self._target
 
     @property
-    def exclude_dirs(self) -> list[str]:
+    def exclude(self) -> list[str]:
         """Server-side directories to exclude during download."""
-        return self._exclude_dirs
-
-    @property
-    def preserve_structure(self) -> bool:
-        """Whether directory structure is preserved upon download."""
-        return self._preserve_structure
+        return self._exclude
 
     @property
     def file_list(self) -> list[str]:
@@ -116,7 +101,7 @@ class FTPDataDownloader:
         return self._file_list
 
     @property
-    def filters(self) -> list[Callable]:
+    def filters(self) -> list[Callable[list, list]]:
         """Functions for excluding files."""
         return self._filters
 
@@ -146,48 +131,31 @@ class FTPDataDownloader:
         """Return True if input is a non-empty string of length > 1."""
         return type(s) is str and len(s) > 0
 
-    def check_credentials(self):
-        """Attempts to construct an FTP connection using the provided credentials."""
-        if not self._is_nonempty_string(
-            self.get_user()
-        ) or not self._is_nonempty_string(self.get_password()):
-            log.warning(
-                "Failed to acquire valid (non-empty string) user and/or password."
-            )
-        print(f"Attempting to connect to host: {self.host}.", end=".. ")
-        with ftputil.FTPHost(self.host, self.get_user(), self.get_password()) as _:
-            pass
-        print("No exceptions raised!")
-
-    def register_filter(self, filter_func):
-        # TODO run some checks
-        self._filters.append(filter_func)
-
-    def dry_run(self):
-        """Do a dry-run of the download."""
+    def _build_file_list(self):
+        """Accesses server and compiles list of files to be downloaded."""
         file_list = []
         total_size = 0
 
-        print("Performing dry run...")
+        log.info(f"Connecting to host: {self.host}")
         with ftputil.FTPHost(
             self.host, self.get_user(), self.get_password()
         ) as ftp_host:
 
-            print(f"Moving to directory: {self.source_dir}")
-            ftp_host.chdir(self.source_dir)
+            log.info(f"Moving to directory: {self.source}")
+            ftp_host.chdir(self.source)
 
             for root, _, files in ftp_host.walk(ftp_host.curdir):
                 root = pathlib.Path(root)
 
                 relative_root = root.relative_to(".")
-                if str(relative_root) in self.exclude_dirs or any(
-                    [str(p) in self.exclude_dirs for p in relative_root.parents]
+                if str(relative_root) in self.exclude or any(
+                    [str(p) in self.exclude for p in relative_root.parents]
                 ):
-                    print(f"Skipping directory: {root}")
+                    log.info(f"Skipping directory: {root}")
                     continue
 
                 if len(files) == 0:
-                    print(f"No files found in directory: {root}")
+                    log.info(f"No files found in directory: {root}")
                     continue
 
                 # Apply custom filters to files
@@ -196,15 +164,55 @@ class FTPDataDownloader:
                     local_file_list = filter_(local_file_list)
 
                 size = sum([ftp_host.path.getsize(file) for file in local_file_list])
-                print(
+                log.info(
                     f"Added {len(local_file_list)} files ({int(size/1e6)} MB) from directory: {root}"
                 )
 
                 file_list += [str(file) for file in local_file_list]
                 total_size += size
 
-        print(
+        log.info(
             f"Total: {len(file_list)} files to be downloaded ({int(total_size/1e6)} MB)"
         )
         self._file_list = file_list
         self._iter_files = iter(file_list)  # points to same object!
+
+    def check_credentials(self):
+        """Attempts to construct an FTP connection using the provided credentials."""
+        if not self._is_nonempty_string(
+            self.get_user()
+        ) or not self._is_nonempty_string(self.get_password()):
+            log.warning(
+                "Failed to acquire valid (non-empty string) user and/or password."
+            )
+        log.info(f"Attempting to connect to host: {self.host}")
+        with ftputil.FTPHost(self.host, self.get_user(), self.get_password()) as _:
+            pass
+        log.info("No exceptions raised!")
+
+    def register_filter(self, filter_func):
+        # TODO run some checks
+        self._filters.append(filter_func)
+
+    def dry_run(self):
+        """Do a dry-run of the download."""
+        log.info("Performing dry run...")
+        self._build_file_list()
+
+
+_parser = jsonargparse.ArgumentParser()
+_parser.add_argument("--config", action=jsonargparse.ActionConfigFile)
+_parser.add_argument("--host")
+_parser.add_argument("--source")
+_parser.add_argument("--target")
+_parser.add_argument("--exclude")
+
+if __name__ == "__main__":
+    """Do a dry-run."""
+    config = _parser.parse_args()
+    print(config)
+    downloader = FTPDataDownloader(
+        config.host, config.source, target=config.target, exclude=config.exclude
+    )
+    downloader.check_credentials()
+    downloader.dry_run()

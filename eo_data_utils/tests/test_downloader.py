@@ -18,10 +18,10 @@ def downloader():
     with open(_CONFIG, "r") as file:
         config = SimpleNamespace(**yaml.safe_load(file))
     downloader = FTPDataDownloader(
-        config.host,
-        config.source,
-        exclude_dirs=config.exclude,
-        target_dir=str(_TARGET_DIR),
+        host=config.host,
+        source=config.source,
+        target=str(_TARGET_DIR),
+        exclude=config.exclude,
     )
     downloader.get_user = lambda: "demo"
     downloader.get_password = lambda: "password"
@@ -48,7 +48,7 @@ def test_dry_run_requirement(downloader):
 
 @pytest.mark.xfail(raises=FileExistsError)
 def test_existing_file(primed_downloader):
-    target = primed_downloader.target_dir / "readme.txt"
+    target = primed_downloader.target / "readme.txt"
     target.parent.mkdir(parents=True, exist_ok=True)
     with target.open(mode="w") as file:
         file.write("dog")
